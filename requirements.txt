@@ -1,0 +1,4 @@
+llama-cpp-python==0.2.7
+llama-index==0.8.36
+python-dotenv==1.0.0
+requests==2.31.0
