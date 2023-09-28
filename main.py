@@ -7,49 +7,19 @@ warnings.filterwarnings("ignore", category=UserWarning)
 dotenv.load_dotenv()
 
 
-from llama_index import Document, VectorStoreIndex, load_index_from_storage, StorageContext, ServiceContext
+from llama_index import Document, download_loader, VectorStoreIndex, load_index_from_storage, StorageContext, ServiceContext
 from llama_index.llms import OpenAI
-from jira import get_all_issues_paginated, JIRA_DOMAIN
 
-
-def build_jira_index():
-    """Build the JIRA index by dumping all issues into JSON files in the data directory."""
-    for issue in get_all_issues_paginated(limit=None):
-        issue_key = issue["key"]
-        os.makedirs("data", exist_ok=True)
-        with open(f"data/{issue_key}.json", "w") as f:
-            json.dump(issue, f, indent=2)
-            print(f"Wrote {issue_key}.json")
 
 def build_vector_store():
     """Build the vector store by reading the data directory and indexing all issues."""
-    documents = []
-    for filename in os.listdir("data"):
-        with open(f"data/{filename}") as f:
-            issue = json.load(f)
-            issue_key = issue["key"]
-            try:
-                document = Document(
-                    id=issue_key,
-                    metadata={
-                        "ticket_id": issue_key,
-                        "author": issue["fields"].get("creator", {}).get("displayName", "Unknown"),
-                        "assignee": issue["fields"].get("assignee", {}).get("displayName", "Unknown"),
-                        "created_on": issue["fields"].get("created", "Unknown"),
-                        "updated_on": issue["fields"].get("updated", "Unknown"),
-                        "status": issue["fields"].get("status", {}).get("name", "Unknown"),
-                        "jira_url": f"https://{JIRA_DOMAIN}/browse/{issue_key}"
-                    },
-                    text=f"""
-                        Issue Summary: {issue["fields"]["summary"]}
-                        Description: {issue["fields"]["description"]}
-                    """
-                )
-                documents.append(document)
-            except (KeyError, AttributeError):
-                print(f"Failed to build document for {issue_key}")
-                continue
-            print(f"Built document for {issue_key}")
+    JiraReader = download_loader("JiraReader")
+    reader = JiraReader(
+        email=os.environ["JIRA_EMAIL"],
+        api_token=os.environ["JIRA_API_TOKEN"],
+        server_url=f"{os.environ['JIRA_DOMAIN']}"
+    )
+    documents = reader.load_data(query="project = AL")
     vector_store = VectorStoreIndex.from_documents(documents)
     vector_store.set_index_id("jira")
     vector_store.storage_context.persist("./vector_store")
@@ -83,7 +53,6 @@ def main():
     args = parser.parse_args()
 
     if args.command == "init":
-        build_jira_index()
         build_vector_store()
     elif args.command == "chat":
         chat()
