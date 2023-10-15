@@ -1,4 +1,5 @@
-llama-cpp-python==0.2.7
-llama-index==0.8.36
+faiss-cpu==1.7.4
+jq==1.6.0
+langchain==0.0.303
 python-dotenv==1.0.0
 requests==2.31.0
