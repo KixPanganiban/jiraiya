@@ -205,7 +205,7 @@ def main():
     args = parser.parse_args()
 
     if args.command == "init":
-        # cache_jira()
+        cache_jira()
         build_vector_store()
     elif args.command == "chat":
         pass
