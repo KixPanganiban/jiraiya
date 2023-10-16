@@ -1,25 +1,22 @@
 import argparse
-from concurrent.futures import ThreadPoolExecutor
-import dotenv
 import json
-import pprint
 import os
-import requests
 import warnings
+from concurrent.futures import ThreadPoolExecutor
+
+import dotenv
+import requests
 
 warnings.filterwarnings("ignore", category=UserWarning)
 dotenv.load_dotenv()
 
-from langchain.chains import RetrievalQA
+from langchain.document_loaders import JSONLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.llms import OpenAIChat
-from langchain.text_splitter import TokenTextSplitter
-from langchain.document_loaders import JSONLoader
 from langchain.prompts import ChatPromptTemplate
-from langchain.retrievers import ContextualCompressionRetriever
-from langchain.retrievers.document_compressors import EmbeddingsFilter
 from langchain.schema.output_parser import StrOutputParser
 from langchain.schema.runnable import RunnablePassthrough
+from langchain.text_splitter import TokenTextSplitter
 from langchain.vectorstores import Chroma
 
 
